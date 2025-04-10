@@ -17,7 +17,10 @@ export default function Home() {
     queryKey: [selectedTopic === "all" ? "/api/videos" : `/api/videos?topic=${selectedTopic}`, page],
     queryFn: async ({ queryKey }) => {
       const offset = page * limit;
-      const url = `${queryKey[0]}&limit=${limit}&offset=${offset}`;
+      const baseUrl = queryKey[0] as string;
+      // Check if URL already has query parameters to determine if we need ? or &
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const url = `${baseUrl}${separator}limit=${limit}&offset=${offset}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch videos");
       return response.json();

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Video } from "@shared/schema";
+import { Video, User } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 interface VideoCardProps {
   video: Video;
@@ -12,14 +13,24 @@ interface VideoCardProps {
 
 export default function VideoCard({ video }: VideoCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useState<HTMLVideoElement | null>(null);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const { user: currentUser } = useAuth();
   
   // Format time since video was posted
   const timeAgo = formatDistanceToNow(new Date(video.createdAt), { addSuffix: true });
   
+  // Fetch video creator
+  const { data: creator } = useQuery<User>({
+    queryKey: [`/api/users/${video.userId}`],
+    enabled: !!video.userId,
+  });
+  
   // Like video mutation
   const likeMutation = useMutation({
     mutationFn: async () => {
+      if (!currentUser) {
+        throw new Error("You must be logged in to like videos");
+      }
       return apiRequest("POST", `/api/videos/${video.id}/like`, {});
     },
     onSuccess: () => {
@@ -32,11 +43,18 @@ export default function VideoCard({ video }: VideoCardProps) {
   };
   
   const handlePlayPause = () => {
-    if (videoRef[0]) {
+    if (videoRef) {
       if (isPlaying) {
-        videoRef[0].pause();
+        videoRef.pause();
       } else {
-        videoRef[0].play();
+        videoRef.play();
+        // Track view
+        if (!video.viewed) {
+          apiRequest("POST", `/api/videos/${video.id}/view`, {})
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
+            });
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -46,17 +64,30 @@ export default function VideoCard({ video }: VideoCardProps) {
     <div className="video-card bg-white mb-4 rounded-lg shadow overflow-hidden">
       <div className="relative">
         <div className="aspect-[9/16] bg-neutral-dark relative">
+          {video.videoUrl ? (
+            <video
+              ref={setVideoRef}
+              src={video.videoUrl}
+              className="w-full h-full object-cover hidden"
+              poster={video.thumbnailUrl || undefined}
+              playsInline
+              muted
+              onEnded={() => setIsPlaying(false)}
+            />
+          ) : null}
+          
           {video.thumbnailUrl ? (
             <img 
               src={video.thumbnailUrl} 
               alt={`Thumbnail for ${video.title}`} 
-              className="w-full h-full object-cover" 
+              className={`w-full h-full object-cover ${isPlaying ? 'hidden' : 'block'}`}
             />
           ) : (
-            <div className="w-full h-full bg-neutral-dark flex items-center justify-center">
+            <div className={`w-full h-full bg-neutral-dark flex items-center justify-center ${isPlaying ? 'hidden' : 'block'}`}>
               <span className="material-icons text-white text-4xl opacity-50">videocam</span>
             </div>
           )}
+          
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
           {isPlaying && <div className="video-progress w-0"></div>}
           <button 
@@ -71,13 +102,25 @@ export default function VideoCard({ video }: VideoCardProps) {
         <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
           <div className="flex items-start">
             <Link href={`/profile/${video.userId}`}>
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center">
-                <span className="material-icons text-white">person</span>
-              </div>
+              <a>
+                {creator?.profileImage ? (
+                  <img 
+                    src={creator.profileImage} 
+                    alt={creator.displayName} 
+                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center">
+                    <span className="material-icons text-white">person</span>
+                  </div>
+                )}
+              </a>
             </Link>
             <div className="ml-2 flex-1">
               <h3 className="font-heading font-semibold">{video.title}</h3>
-              <p className="text-sm opacity-90">@username</p>
+              <p className="text-sm opacity-90">
+                {creator ? `@${creator.username}` : 'Loading...'}
+              </p>
             </div>
           </div>
         </div>
@@ -91,19 +134,25 @@ export default function VideoCard({ video }: VideoCardProps) {
         </div>
         <p className="text-sm mb-3">{video.description || "No description provided."}</p>
         <div className="flex items-center justify-between text-neutral-medium">
-          <button className="flex items-center" onClick={handleLike}>
-            <span className="material-icons mr-1 text-xl">
-              {likeMutation.isPending ? "favorite" : "favorite_border"}
+          <button 
+            className="flex items-center" 
+            onClick={handleLike}
+            disabled={!currentUser || likeMutation.isPending}
+          >
+            <span className={`material-icons mr-1 text-xl ${video.userLiked ? 'text-red-500' : ''}`}>
+              {video.userLiked ? "favorite" : "favorite_border"}
             </span>
             <span>{video.likes}</span>
           </button>
-          <button className="flex items-center">
-            <span className="material-icons mr-1 text-xl">chat_bubble_outline</span>
-            <span>{video.comments}</span>
-          </button>
+          <Link href={`/videos/${video.id}`}>
+            <a className="flex items-center">
+              <span className="material-icons mr-1 text-xl">chat_bubble_outline</span>
+              <span>{video.comments}</span>
+            </a>
+          </Link>
           <button className="flex items-center">
             <span className="material-icons mr-1 text-xl">share</span>
-            <span>0</span>
+            <span>{video.shares}</span>
           </button>
           <button className="flex items-center">
             <span className="material-icons mr-1 text-xl">bookmark_border</span>

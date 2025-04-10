@@ -173,6 +173,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error liking video" });
     }
   });
+  
+  app.post("/api/videos/:id/view", async (req: Request, res: Response) => {
+    try {
+      const videoId = parseInt(req.params.id);
+      const video = await storage.getVideo(videoId);
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      
+      const updatedVideo = await storage.updateVideoViews(videoId, 1);
+      
+      res.json(updatedVideo);
+    } catch (error) {
+      res.status(500).json({ message: "Error tracking video view" });
+    }
+  });
 
   // Admin routes
   app.get("/api/admin/pending-videos", async (req: Request, res: Response) => {
