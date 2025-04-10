@@ -14,6 +14,8 @@ interface VideoCardProps {
 export default function VideoCard({ video }: VideoCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [hasViewed, setHasViewed] = useState(false);
   const { user: currentUser } = useAuth();
   
   // Format time since video was posted
@@ -34,12 +36,15 @@ export default function VideoCard({ video }: VideoCardProps) {
       return apiRequest("POST", `/api/videos/${video.id}/like`, {});
     },
     onSuccess: () => {
+      setHasLiked(true);
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
     }
   });
   
   const handleLike = () => {
-    likeMutation.mutate();
+    if (!hasLiked) {
+      likeMutation.mutate();
+    }
   };
   
   const handlePlayPause = () => {
@@ -48,8 +53,9 @@ export default function VideoCard({ video }: VideoCardProps) {
         videoRef.pause();
       } else {
         videoRef.play();
-        // Track view
-        if (!video.viewed) {
+        // Track view only once per component mount
+        if (!hasViewed) {
+          setHasViewed(true);
           apiRequest("POST", `/api/videos/${video.id}/view`, {})
             .then(() => {
               queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
@@ -68,7 +74,7 @@ export default function VideoCard({ video }: VideoCardProps) {
             <video
               ref={setVideoRef}
               src={video.videoUrl}
-              className="w-full h-full object-cover hidden"
+              className={`w-full h-full object-cover ${isPlaying ? 'block' : 'hidden'}`}
               poster={video.thumbnailUrl || undefined}
               playsInline
               muted
@@ -139,8 +145,8 @@ export default function VideoCard({ video }: VideoCardProps) {
             onClick={handleLike}
             disabled={!currentUser || likeMutation.isPending}
           >
-            <span className={`material-icons mr-1 text-xl ${video.userLiked ? 'text-red-500' : ''}`}>
-              {video.userLiked ? "favorite" : "favorite_border"}
+            <span className={`material-icons mr-1 text-xl ${hasLiked ? 'text-red-500' : ''}`}>
+              {hasLiked ? "favorite" : "favorite_border"}
             </span>
             <span>{video.likes}</span>
           </button>
