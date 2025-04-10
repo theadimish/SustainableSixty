@@ -51,13 +51,24 @@ export default function ProfileSidebar() {
               </div>
             </div>
             
-            <Button 
-              className="w-full mt-4" 
-              size="sm"
-              onClick={() => window.location.href = "/profile"}
-            >
-              View Full Profile
-            </Button>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <Button 
+                className="w-full" 
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.href = "/profile"}
+              >
+                Profile
+              </Button>
+              <Button 
+                className="w-full" 
+                size="sm"
+                variant="outline"
+                onClick={() => window.location.href = "/profile?tab=saved"}
+              >
+                Saved Videos
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

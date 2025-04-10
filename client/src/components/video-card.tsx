@@ -27,24 +27,55 @@ export default function VideoCard({ video }: VideoCardProps) {
     enabled: !!video.userId,
   });
   
-  // Like video mutation
+  // Like video mutation - works as toggle now
   const likeMutation = useMutation({
     mutationFn: async () => {
       if (!currentUser) {
         throw new Error("You must be logged in to like videos");
       }
-      return apiRequest("POST", `/api/videos/${video.id}/like`, {});
+      return apiRequest("POST", `/api/videos/${video.id}/like`, { 
+        action: hasLiked ? 'unlike' : 'like' 
+      });
     },
     onSuccess: () => {
-      setHasLiked(true);
+      setHasLiked(!hasLiked);
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
     }
   });
   
-  const handleLike = () => {
-    if (!hasLiked) {
-      likeMutation.mutate();
+  // Save video mutation
+  const [isSaved, setIsSaved] = useState(false);
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) {
+        throw new Error("You must be logged in to save videos");
+      }
+      return apiRequest("POST", `/api/videos/${video.id}/save`, { 
+        action: isSaved ? 'unsave' : 'save' 
+      });
+    },
+    onSuccess: () => {
+      setIsSaved(!isSaved);
+      queryClient.invalidateQueries({ queryKey: ["/api/users/saved-videos"] });
     }
+  });
+  
+  // Copy link function
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyVideoLink = () => {
+    const videoUrl = `${window.location.origin}/videos/${video.id}`;
+    navigator.clipboard.writeText(videoUrl).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  };
+  
+  const handleLike = () => {
+    likeMutation.mutate();
+  };
+  
+  const handleSaveVideo = () => {
+    saveMutation.mutate();
   };
   
   const handlePlayPause = () => {
@@ -158,12 +189,20 @@ export default function VideoCard({ video }: VideoCardProps) {
             <span className="material-icons mr-1 text-xl">chat_bubble_outline</span>
             <span>{video.comments}</span>
           </div>
-          <button className="flex items-center">
-            <span className="material-icons mr-1 text-xl">share</span>
-            <span>{video.shares}</span>
+          <button className="flex items-center" onClick={copyVideoLink}>
+            <span className="material-icons mr-1 text-xl">
+              {linkCopied ? "check_circle" : "content_copy"}
+            </span>
+            <span>{linkCopied ? "Copied!" : "Copy Link"}</span>
           </button>
-          <button className="flex items-center">
-            <span className="material-icons mr-1 text-xl">bookmark_border</span>
+          <button 
+            className="flex items-center"
+            onClick={handleSaveVideo}
+            disabled={!currentUser || saveMutation.isPending}
+          >
+            <span className={`material-icons mr-1 text-xl ${isSaved ? 'text-blue-500' : ''}`}>
+              {isSaved ? "bookmark" : "bookmark_border"}
+            </span>
           </button>
         </div>
       </div>
