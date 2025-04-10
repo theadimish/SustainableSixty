@@ -9,22 +9,26 @@ import Leaderboard from "@/pages/leaderboard";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
 import BottomNavigation from "@/components/bottom-navigation";
+import AuthPage from "@/pages/auth-page";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 
 function Router() {
   const [location] = useLocation();
   
-  // Don't show navigation on the record page
-  const showNavigation = location !== "/record" && location !== "/admin";
+  // Don't show navigation on the record page and auth pages
+  const showNavigation = location !== "/record" && location !== "/admin" && location !== "/auth";
   
   return (
     <>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/record" component={Record} />
+        <ProtectedRoute path="/record" component={Record} />
         <Route path="/leaderboard" component={Leaderboard} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/profile/:id" component={Profile} />
-        <Route path="/admin" component={Admin} />
+        <ProtectedRoute path="/profile" component={Profile} />
+        <ProtectedRoute path="/profile/:id" component={Profile} />
+        <ProtectedRoute path="/admin" component={Admin} />
+        <Route path="/auth" component={AuthPage} />
         <Route component={NotFound} />
       </Switch>
       
@@ -36,8 +40,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

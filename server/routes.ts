@@ -6,6 +6,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { setupAuth } from "./auth";
 
 // Setup storage for video uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -26,6 +27,8 @@ const storage2 = multer.diskStorage({
 const upload = multer({ storage: storage2 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication routes
+  setupAuth(app);
   // User routes
   app.post("/api/users", async (req: Request, res: Response) => {
     try {

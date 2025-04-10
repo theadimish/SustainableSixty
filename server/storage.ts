@@ -75,6 +75,50 @@ export class MemStorage implements IStorage {
       topic: "waste",
       isActive: true,
     });
+    
+    // Create a demo user
+    this.createUser({
+      username: "johndoe",
+      password: "$2a$10$X7VYHy6Ck7HYfBH.8iYfY.Vy3DhkX8qlS8g/qU7cUx/QgNu.RTlcG", // "password123"
+      displayName: "John Doe",
+      bio: "Passionate about sustainability and environmental conservation.",
+      profileImage: "https://i.pravatar.cc/150?u=johndoe",
+    }).then(user => {
+      // Create some sample videos for the user
+      this.createVideo({
+        userId: user.id,
+        title: "Reducing Plastic Waste at Home",
+        description: "Simple tips to reduce plastic use in your everyday life.",
+        videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        thumbnailUrl: "https://images.unsplash.com/photo-1528323273322-d81458248d40?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+        topic: "waste",
+      }).then(video => {
+        // Mark the video as approved so it shows up on the home page
+        this.updateVideoStatus(video.id, "approved");
+      });
+      
+      this.createVideo({
+        userId: user.id,
+        title: "DIY Solar Panel Installation",
+        description: "How I installed solar panels on my shed to power my garden tools.",
+        videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        thumbnailUrl: "https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+        topic: "energy",
+      }).then(video => {
+        this.updateVideoStatus(video.id, "approved");
+      });
+      
+      this.createVideo({
+        userId: user.id,
+        title: "Building a Backyard Wildlife Habitat",
+        description: "Creating a safe space for local birds and insects in your garden.",
+        videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        thumbnailUrl: "https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+        topic: "biodiversity",
+      }).then(video => {
+        this.updateVideoStatus(video.id, "approved");
+      });
+    });
   }
 
   // User operations
@@ -227,7 +271,12 @@ export class MemStorage implements IStorage {
   // Challenge operations
   async createChallenge(insertChallenge: InsertChallenge): Promise<Challenge> {
     const id = this.challengeId++;
-    const challenge: Challenge = { ...insertChallenge, id };
+    const challenge: Challenge = { 
+      ...insertChallenge, 
+      id,
+      // Ensure isActive is not undefined
+      isActive: insertChallenge.isActive ?? true
+    };
     this.challenges.set(id, challenge);
     return challenge;
   }

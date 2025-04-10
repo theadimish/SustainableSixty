@@ -10,7 +10,16 @@ import MemoryStore from "memorystore";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    // Define the User interface for passport
+    interface User {
+      id: number;
+      username: string;
+      displayName: string;
+      role: string;
+      points: number;
+      bio: string | null;
+      profileImage: string | null;
+    }
   }
 }
 
@@ -66,7 +75,7 @@ export function setupAuth(app: Express) {
     })
   );
 
-  passport.serializeUser((user, done) => {
+  passport.serializeUser((user: Express.User, done) => {
     done(null, user.id);
   });
 
@@ -109,7 +118,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: Express.User | false, info: any) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: "Invalid username or password" });
