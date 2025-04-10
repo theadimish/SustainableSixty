@@ -48,15 +48,20 @@ export default function Discover() {
     setFilteredVideos(result);
   }, [videos, searchTerm, selectedTopic]);
 
-  // Topics array
+  // Topics array with icons
   const topics = [
-    { id: "all", label: "All" },
-    { id: "energy", label: "Energy" },
-    { id: "waste", label: "Waste" },
-    { id: "biodiversity", label: "Biodiversity" },
-    { id: "climate", label: "Climate" },
-    { id: "food", label: "Food" },
-    { id: "fashion", label: "Fashion" },
+    { id: "all", label: "All", icon: "apps" },
+    { id: "energy", label: "Energy", icon: "bolt" },
+    { id: "waste", label: "Waste", icon: "delete" },
+    { id: "biodiversity", label: "Biodiversity", icon: "eco" },
+    { id: "climate", label: "Climate", icon: "thermostat" },
+    { id: "food", label: "Food", icon: "restaurant" },
+    { id: "fashion", label: "Fashion", icon: "checkroom" },
+    { id: "water", label: "Water", icon: "water_drop" },
+    { id: "technology", label: "Technology", icon: "devices" },
+    { id: "building", label: "Building", icon: "apartment" },
+    { id: "transportation", label: "Transportation", icon: "directions_car" },
+    { id: "urban", label: "Urban", icon: "location_city" },
   ];
 
   return (
@@ -75,18 +80,25 @@ export default function Discover() {
         </div>
 
         {/* Topics filter */}
-        <div className="mb-4 overflow-x-auto pb-2">
-          <div className="flex space-x-2">
-            {topics.map(topic => (
-              <Badge
-                key={topic.id}
-                variant={selectedTopic === topic.id ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setSelectedTopic(topic.id)}
-              >
-                {topic.label}
-              </Badge>
-            ))}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium mb-2">Topics</h3>
+          <div className="overflow-x-auto pb-2">
+            <div className="flex space-x-2">
+              {topics.map(topic => (
+                <div
+                  key={topic.id}
+                  className={`flex flex-col items-center cursor-pointer p-2 rounded transition-colors ${
+                    selectedTopic === topic.id 
+                    ? 'bg-primary/10 text-primary' 
+                    : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => setSelectedTopic(topic.id)}
+                >
+                  <span className="material-icons text-xl mb-1">{topic.icon}</span>
+                  <span className="text-xs">{topic.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -199,9 +199,48 @@ export default function Profile() {
         )}
         
         {activeTab === "saved" && (
-          <div className="p-8 text-center text-neutral-medium">
-            No saved videos yet
-          </div>
+          <>
+            {savedVideosLoading ? (
+              <div className="p-8 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : savedVideos && savedVideos.length > 0 ? (
+              <div className="grid grid-cols-3 gap-1 p-1">
+                {savedVideos.map((video) => (
+                  <div 
+                    key={video.id} 
+                    className="aspect-square relative cursor-pointer"
+                    onClick={() => window.location.href = `/videos/${video.id}`}
+                  >
+                    {video.thumbnailUrl ? (
+                      <img 
+                        src={video.thumbnailUrl} 
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="material-icons text-gray-400">videocam</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
+                    <div className="absolute bottom-1 left-1 right-1 text-white text-xs p-1">
+                      <p className="font-semibold truncate">{video.title}</p>
+                    </div>
+                    <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
+                      <span className="material-icons text-xs">visibility</span> {video.views}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-neutral-medium">
+                <span className="material-icons text-4xl mb-2">bookmark_border</span>
+                <p>No saved videos yet</p>
+                <p className="text-sm mt-2">Videos you save will appear here</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
