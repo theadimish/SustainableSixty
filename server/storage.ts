@@ -90,7 +90,15 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
-    const user: User = { ...insertUser, id, points: 0, role: "user" };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      points: 0, 
+      role: "user",
+      // Ensure bio and profileImage are not undefined
+      bio: insertUser.bio ?? null,
+      profileImage: insertUser.profileImage ?? null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -123,7 +131,10 @@ export class MemStorage implements IStorage {
       comments: 0, 
       shares: 0, 
       status: "pending",
-      createdAt: now
+      createdAt: now,
+      // Ensure description and thumbnailUrl are not undefined
+      description: insertVideo.description ?? null,
+      thumbnailUrl: insertVideo.thumbnailUrl ?? null
     };
     this.videos.set(id, video);
     return video;
