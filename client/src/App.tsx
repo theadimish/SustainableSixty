@@ -5,35 +5,58 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Record from "@/pages/record";
-import Leaderboard from "@/pages/leaderboard";
+import Discover from "@/pages/discover";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
+import SideNavigation from "@/components/side-navigation";
+import ProfileSidebar from "@/components/profile-sidebar";
 import BottomNavigation from "@/components/bottom-navigation";
 import AuthPage from "@/pages/auth-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 function Router() {
   const [location] = useLocation();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const isTablet = useMediaQuery("(min-width: 768px)");
   
-  // Don't show navigation on the record page and auth pages
-  const showNavigation = location !== "/record" && location !== "/admin" && location !== "/auth";
+  // Don't show mobile navigation on certain pages
+  const showMobileNavigation = !isTablet && 
+    location !== "/record" && 
+    location !== "/admin" && 
+    location !== "/auth";
+  
+  // Full-screen pages (no sidebars)
+  const isFullScreenPage = location === "/auth" || 
+    location === "/record" || 
+    location === "/admin";
   
   return (
-    <>
-      <Switch>
-        <Route path="/" component={Home} />
-        <ProtectedRoute path="/record" component={Record} />
-        <Route path="/leaderboard" component={Leaderboard} />
-        <ProtectedRoute path="/profile" component={Profile} />
-        <ProtectedRoute path="/profile/:id" component={Profile} />
-        <ProtectedRoute path="/admin" component={Admin} />
-        <Route path="/auth" component={AuthPage} />
-        <Route component={NotFound} />
-      </Switch>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Left sidebar navigation - hidden on fullscreen pages */}
+      {!isFullScreenPage && <SideNavigation />}
       
-      {showNavigation && <BottomNavigation />}
-    </>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-x-hidden">
+        <Switch>
+          <Route path="/" component={Home} />
+          <ProtectedRoute path="/record" component={Record} />
+          <Route path="/discover" component={Discover} />
+          <ProtectedRoute path="/profile" component={Profile} />
+          <ProtectedRoute path="/profile/:id" component={Profile} />
+          <ProtectedRoute path="/admin" component={Admin} />
+          <Route path="/auth" component={AuthPage} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+      
+      {/* Right profile sidebar - only shown on desktop and not on fullscreen pages */}
+      {isDesktop && !isFullScreenPage && <ProfileSidebar />}
+      
+      {/* Mobile bottom navigation */}
+      {showMobileNavigation && <BottomNavigation />}
+    </div>
   );
 }
 
