@@ -3,7 +3,8 @@ import {
   videos, type Video, type InsertVideo,
   comments, type Comment, type InsertComment,
   challenges, type Challenge, type InsertChallenge,
-  achievements, type Achievement, type InsertAchievement
+  achievements, type Achievement, type InsertAchievement,
+  savedVideos, type SavedVideo, type InsertSavedVideo
 } from "@shared/schema";
 
 export interface IStorage {
@@ -37,6 +38,12 @@ export interface IStorage {
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getAchievementsByUserId(userId: number): Promise<Achievement[]>;
+  
+  // Saved videos operations
+  saveVideo(savedVideo: InsertSavedVideo): Promise<SavedVideo>;
+  unsaveVideo(userId: number, videoId: number): Promise<boolean>;
+  getSavedVideosByUserId(userId: number): Promise<Video[]>;
+  isVideoSavedByUser(userId: number, videoId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -45,6 +52,7 @@ export class MemStorage implements IStorage {
   private comments: Map<number, Comment>;
   private challenges: Map<number, Challenge>;
   private achievements: Map<number, Achievement>;
+  private savedVideos: Map<string, SavedVideo>;
   private userId: number;
   private videoId: number;
   private commentId: number;
@@ -57,6 +65,7 @@ export class MemStorage implements IStorage {
     this.comments = new Map();
     this.challenges = new Map();
     this.achievements = new Map();
+    this.savedVideos = new Map();
     this.userId = 1;
     this.videoId = 1;
     this.commentId = 1;
@@ -308,6 +317,35 @@ export class MemStorage implements IStorage {
     return Array.from(this.achievements.values()).filter(
       (achievement) => achievement.userId === userId
     );
+  }
+  
+  // Saved videos operations
+  async saveVideo(savedVideo: InsertSavedVideo): Promise<SavedVideo> {
+    const now = new Date();
+    const record: SavedVideo = { ...savedVideo, savedAt: now };
+    const key = `${savedVideo.userId}-${savedVideo.videoId}`;
+    this.savedVideos.set(key, record);
+    return record;
+  }
+  
+  async unsaveVideo(userId: number, videoId: number): Promise<boolean> {
+    const key = `${userId}-${videoId}`;
+    return this.savedVideos.delete(key);
+  }
+  
+  async getSavedVideosByUserId(userId: number): Promise<Video[]> {
+    const savedKeys = Array.from(this.savedVideos.entries())
+      .filter(([key, saved]) => saved.userId === userId)
+      .map(([key, saved]) => saved.videoId);
+    
+    return Array.from(this.videos.values())
+      .filter(video => savedKeys.includes(video.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async isVideoSavedByUser(userId: number, videoId: number): Promise<boolean> {
+    const key = `${userId}-${videoId}`;
+    return this.savedVideos.has(key);
   }
 }
 

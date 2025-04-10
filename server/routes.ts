@@ -189,6 +189,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error tracking video view" });
     }
   });
+  
+  // Save/unsave video route
+  app.post("/api/videos/:id/save", async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const userId = req.user.id;
+      const videoId = parseInt(req.params.id);
+      const action = req.body.action || 'save';
+      
+      const video = await storage.getVideo(videoId);
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      
+      if (action === 'save') {
+        const isSaved = await storage.isVideoSavedByUser(userId, videoId);
+        if (!isSaved) {
+          await storage.saveVideo({ userId, videoId });
+        }
+      } else if (action === 'unsave') {
+        await storage.unsaveVideo(userId, videoId);
+      }
+      
+      res.json({ success: true, action });
+    } catch (error) {
+      res.status(500).json({ message: "Error saving/unsaving video" });
+    }
+  });
+  
+  // Get user's saved videos
+  app.get("/api/users/saved-videos", async (req: Request, res: Response) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const videos = await storage.getSavedVideosByUserId(req.user.id);
+      res.json(videos);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving saved videos" });
+    }
+  });
 
   // Admin routes
   app.get("/api/admin/pending-videos", async (req: Request, res: Response) => {

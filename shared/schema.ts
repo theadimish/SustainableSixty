@@ -109,5 +109,24 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Challenge = typeof challenges.$inferSelect;
 export type InsertChallenge = z.infer<typeof insertChallengeSchema>;
 
+// Saved Videos model
+export const savedVideos = pgTable("saved_videos", {
+  userId: integer("user_id").notNull().references(() => users.id),
+  videoId: integer("video_id").notNull().references(() => videos.id),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    pk: primaryKey({ columns: [table.userId, table.videoId] }),
+  }
+});
+
+export const insertSavedVideoSchema = createInsertSchema(savedVideos).pick({
+  userId: true,
+  videoId: true,
+});
+
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+
+export type SavedVideo = typeof savedVideos.$inferSelect;
+export type InsertSavedVideo = z.infer<typeof insertSavedVideoSchema>;

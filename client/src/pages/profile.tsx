@@ -33,6 +33,12 @@ export default function Profile() {
     enabled: !!userId,
   });
   
+  // Fetch saved videos
+  const { data: savedVideos, isLoading: savedVideosLoading } = useQuery<Video[]>({
+    queryKey: ["/api/users/saved-videos"],
+    enabled: activeTab === "saved" && !!userId,
+  });
+  
   // Fetch user achievements
   const { data: achievements, isLoading: achievementsLoading } = useQuery<Achievement[]>({
     queryKey: [`/api/users/${userId}/achievements`],
