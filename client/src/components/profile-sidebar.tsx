@@ -51,8 +51,12 @@ export default function ProfileSidebar() {
               </div>
             </div>
             
-            <Button asChild className="w-full mt-4" size="sm">
-              <Link href="/profile">View Full Profile</Link>
+            <Button 
+              className="w-full mt-4" 
+              size="sm"
+              onClick={() => window.location.href = "/profile"}
+            >
+              View Full Profile
             </Button>
           </CardContent>
         </Card>
@@ -63,8 +67,11 @@ export default function ProfileSidebar() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 mb-4">Share your sustainability stories and connect with others making a difference.</p>
-            <Button asChild className="w-full">
-              <Link href="/auth">Sign Up or Login</Link>
+            <Button 
+              className="w-full"
+              onClick={() => window.location.href = "/auth"}
+            >
+              Sign Up or Login
             </Button>
           </CardContent>
         </Card>

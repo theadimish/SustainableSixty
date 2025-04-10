@@ -107,21 +107,22 @@ export default function VideoCard({ video }: VideoCardProps) {
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
           <div className="flex items-start">
-            <Link href={`/profile/${video.userId}`}>
-              <a>
-                {creator?.profileImage ? (
-                  <img 
-                    src={creator.profileImage} 
-                    alt={creator.displayName} 
-                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center">
-                    <span className="material-icons text-white">person</span>
-                  </div>
-                )}
-              </a>
-            </Link>
+            <div 
+              onClick={() => window.location.href = `/profile/${video.userId}`}
+              className="cursor-pointer"
+            >
+              {creator?.profileImage ? (
+                <img 
+                  src={creator.profileImage} 
+                  alt={creator.displayName} 
+                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center">
+                  <span className="material-icons text-white">person</span>
+                </div>
+              )}
+            </div>
             <div className="ml-2 flex-1">
               <h3 className="font-heading font-semibold">{video.title}</h3>
               <p className="text-sm opacity-90">
@@ -150,12 +151,13 @@ export default function VideoCard({ video }: VideoCardProps) {
             </span>
             <span>{video.likes}</span>
           </button>
-          <Link href={`/videos/${video.id}`}>
-            <a className="flex items-center">
-              <span className="material-icons mr-1 text-xl">chat_bubble_outline</span>
-              <span>{video.comments}</span>
-            </a>
-          </Link>
+          <div 
+            onClick={() => window.location.href = `/videos/${video.id}`}
+            className="flex items-center cursor-pointer"
+          >
+            <span className="material-icons mr-1 text-xl">chat_bubble_outline</span>
+            <span>{video.comments}</span>
+          </div>
           <button className="flex items-center">
             <span className="material-icons mr-1 text-xl">share</span>
             <span>{video.shares}</span>

@@ -41,17 +41,16 @@ export default function SideNavigation() {
         <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <a 
-                  className={`flex items-center p-3 rounded-lg transition-colors ${
-                    location === item.path 
-                      ? 'bg-primary/10 text-primary font-medium' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="material-icons mr-3">{item.icon}</span>
-                  {!isMobile && <span>{item.label}</span>}
-                </a>
+              <Link 
+                href={item.path}
+                className={`flex items-center p-3 rounded-lg transition-colors ${
+                  location === item.path 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <span className="material-icons mr-3">{item.icon}</span>
+                {!isMobile && <span>{item.label}</span>}
               </Link>
             </li>
           ))}
